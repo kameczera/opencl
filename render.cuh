@@ -2,10 +2,11 @@
 #define RENDER_CUH
 
 #include "objects.cuh"
-#include "vertex.cuh"
+#include "vec3.cuh"
 
 using namespace std;
 
+const float MY_PI = 3.1415; 
 
 extern GLuint pbo;
 extern GLuint tex;
@@ -30,18 +31,19 @@ __global__ void renderGradient(uchar4* pixels, circle* circles, int circles_len,
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     if (col >= width || row >= height) return;
-
+    vec3 cam(0, 0, 0);
     int idx = row * width + col;
     for(int i = 0; i < circles_len; i++) {
-        if(col == circles[i].center.x() && row == circles[i].center.y()) {
+        if(circles[i].hit_circle(col + cam.x(), row + cam.y(), 0)) {
             pixels[idx] = pack_color(row, col, width, height);
         }
     }
 }
 
 circle* create_circles() {
-    int center[2] = {255, 100};
-    circle* circles = new circle(10, center);
+    vec3 center(200, 100, 1);
+    circle* circles = new circle(30, center);
+    return circles;
 }
 
 void runCuda(int width, int height) {
