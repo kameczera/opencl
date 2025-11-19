@@ -1,7 +1,11 @@
 #ifndef RENDER_CUH
 #define RENDER_CUH
 
+#include "objects.cuh"
+#include "vertex.cuh"
+
 using namespace std;
+
 
 extern GLuint pbo;
 extern GLuint tex;
@@ -22,13 +26,22 @@ __device__ uchar4 pack_color(int row, int col, int width, int height) {
     return color;
 }
 
-__global__ void renderGradient(uchar4* pixels, int width, int height) {
+__global__ void renderGradient(uchar4* pixels, circle* circles, int circles_len, int width, int height) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     if (col >= width || row >= height) return;
 
     int idx = row * width + col;
-    pixels[idx] = pack_color(row, col, width, height);
+    for(int i = 0; i < circles_len; i++) {
+        if(col == circles[i].center.x() && row == circles[i].center.y()) {
+            pixels[idx] = pack_color(row, col, width, height);
+        }
+    }
+}
+
+circle* create_circles() {
+    int center[2] = {255, 100};
+    circle* circles = new circle(10, center);
 }
 
 void runCuda(int width, int height) {
@@ -37,9 +50,14 @@ void runCuda(int width, int height) {
     cudaGraphicsMapResources(1, &cuda_pbo_resource, 0);
     cudaGraphicsResourceGetMappedPointer((void**)&dptr, &size, cuda_pbo_resource);
 
+    circle* circles = create_circles();
+    int circles_len = 1;
+    circle* d_circles;
+    cudaMalloc(&d_circles, sizeof(circle));
+    cudaMemcpy(d_circles, circles, sizeof(circle), cudaMemcpyHostToDevice);
     dim3 block(32, 32);
     dim3 grid((width + block.x - 1) / block.x, (height + block.y - 1) / block.y);
-    renderGradient<<<grid, block>>>(dptr, width, height);
+    renderGradient<<<grid, block>>>(dptr, d_circles, circles_len, width, height);
     cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0);
 }
 
