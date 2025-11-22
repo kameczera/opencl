@@ -6,13 +6,12 @@
 
 #include "render.cuh"
 #include "vec3.cuh"
-#include "scene.cuh"
 
 GLuint pbo = 0;
 GLuint tex = 0;
 struct cudaGraphicsResource* cuda_pbo_resource;
-static int HEIGHT = 225;
-static int WIDTH = 400;
+int HEIGHT = 225;
+int WIDTH = 400;
 scene* g_scene;
 
 void keyboard(unsigned char key, int x, int y) {

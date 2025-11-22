@@ -3,7 +3,6 @@
 
 #include "objects.cuh"
 #include "vec3.cuh"
-#include "scene.cuh"
 
 using namespace std;
 
@@ -12,6 +11,8 @@ const float MY_PI = 3.1415;
 extern GLuint pbo;
 extern GLuint tex;
 extern struct cudaGraphicsResource* cuda_pbo_resource;
+extern int WIDTH;
+extern int HEIGHT;
 
 circle* create_circles() {
     vec3 center(200, 100, 1);
